@@ -78,7 +78,7 @@ function showQuestion() {
     
     if (currentQuestionIndex < questions.length) {
         const currentQuestion = questions[currentQuestionIndex];
-        questionText.textContent = `Questão ${currentQuestionIndex + 1} de ${questions.length}: ${currentQuestion.question}`;
+        questionText.textContent = `${currentQuestionIndex + 1} de ${questions.length}: ${currentQuestion.question}`;
         optionsContainer.innerHTML = '';
     
         currentQuestion.options.forEach(option => {
@@ -170,3 +170,4 @@ nextButton.addEventListener('click', nextQuestion);
 
 // Inicia o quiz
 showQuestion();
+
