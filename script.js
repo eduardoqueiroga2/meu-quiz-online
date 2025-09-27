@@ -82,4 +82,33 @@ function showFinalScore() {
 nextButton.addEventListener('click', nextQuestion);
 
 // Inicia o quiz
+
 showQuestion();
+
+/* Adicione isso ao final do seu style.css */
+
+.final-score {
+    margin-bottom: 25px;
+}
+
+.review-section {
+    text-align: left;
+    margin-top: 30px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.error-item {
+    margin-bottom: 15px;
+}
+
+.error-item p {
+    margin: 5px 0;
+    line-height: 1.4;
+}
+
+.error-item strong {
+    font-weight: bold;
+}
