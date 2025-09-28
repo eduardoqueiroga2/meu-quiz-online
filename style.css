@@ -1,18 +1,113 @@
-/* Atualize a cor do timer para combinar com a correção */
-#timer-display {
-    color: var(--correct-color) !important;
+/*
+ * ARQUIVO: style.css COMPLETO
+ * TEMA: DARK MODE (Modo Escuro)
+ */
+
+/* 1. VARIÁVEIS DE COR E TEMA ESCURO */
+:root {
+    --bg-color: #1a1a1a;        /* Fundo principal escuro */
+    --text-color: #f0f0f0;      /* Cor do texto principal (branco suave) */
+    --card-bg: #2d2d2d;         /* Fundo do quiz container */
+    --shadow-color: rgba(0, 0, 0, 0.5); /* Sombra mais escura */
+    --button-bg: #444;          /* Fundo dos botões de opção */
+    --button-hover: #555;       /* Fundo dos botões de opção (hover) */
+    --main-accent: #007bff;     /* Cor primária para o botão Próxima Questão */
+    --correct-color: #4CAF50;   /* Cor para o acerto (Verde) */
+    --incorrect-color: #f44336; /* Cor para o erro (Vermelho) */
+    --review-bg: #383838;       /* Fundo da seção de revisão */
+    --border-color: #444;       /* Cor da linha e bordas */
 }
 
-/* Novo estilo para os botões de navegação, alinhando um à esquerda e outro à direita */
+/* 2. ESTILO GERAL DO BODY E CONTAINER */
+body {
+    font-family: Arial, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Usa min-height para acomodar a revisão longa */
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.quiz-container {
+    background-color: var(--card-bg);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px var(--shadow-color);
+    width: 90%;
+    max-width: 650px;
+    text-align: center;
+}
+
+h1#quiz-title { /* Estilo para o título principal */
+    color: var(--text-color);
+    font-size: 1.8em;
+    margin-top: 0;
+}
+
+#question-text {
+    color: var(--text-color);
+    margin-bottom: 25px;
+    font-size: 1.3em;
+}
+
+/* 3. CRONÔMETRO */
+#timer-display {
+    color: var(--correct-color) !important; /* Cor verde para o tempo */
+    font-size: 1.1em;
+    margin-bottom: 20px;
+    font-weight: bold;
+}
+
+/* 4. BOTÕES DE OPÇÃO (GRID) */
+.options-grid {
+    display: grid;
+    gap: 12px;
+}
+
+.option-btn {
+    background-color: var(--button-bg);
+    color: var(--text-color);
+    border: 1px solid #555;
+    padding: 14px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s, border-color 0.3s;
+    text-align: center;
+}
+
+.option-btn:hover:not(:disabled) {
+    background-color: var(--button-hover);
+}
+
+/* FEEDBACK VISUAL DAS OPÇÕES */
+.option-btn.correct {
+    background-color: var(--correct-color);
+    border-color: var(--correct-color);
+    color: white;
+}
+
+.option-btn.incorrect {
+    background-color: var(--incorrect-color);
+    border-color: var(--incorrect-color);
+    color: white;
+}
+
+/* 5. CONTROLES DE NAVEGAÇÃO */
 .navigation-controls {
     margin-top: 25px;
     display: flex;
-    justify-content: space-between; /* Alinha um à esquerda e o outro à direita */
+    justify-content: space-between; /* Alinha os botões nas extremidades */
     width: 100%;
 }
 
 .nav-btn {
-    background-color: var(--main-accent); /* Cor principal do botão */
+    /* Estilo base igual para Voltar e Próxima/Finalizar */
+    background-color: var(--main-accent); 
     color: white;
     border: none;
     padding: 12px 25px;
@@ -20,14 +115,69 @@
     cursor: pointer;
     font-size: 16px;
     transition: background-color 0.3s;
-    flex-grow: 0; /* Impede que os botões se expandam */
+    flex-grow: 0; 
 }
 
 .nav-btn:hover {
     background-color: #0056b3; /* Tom mais escuro para hover */
 }
 
-/* Ajuste o estilo do botão "Tentar Novamente" para usar o mesmo padrão */
+/* 6. ESTILO DA REVISÃO FINAL */
+.final-score {
+    margin-bottom: 25px;
+}
+
+.review-section {
+    text-align: left;
+    margin-top: 35px;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--review-bg);
+}
+
+.error-item {
+    margin-bottom: 20px;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.error-item hr {
+    border: 0;
+    height: 1px;
+    background: var(--border-color);
+    margin: 15px 0;
+}
+
+/* CORES E BORDAS DO STATUS DE REVISÃO */
+.review-correct {
+    border-left: 5px solid var(--correct-color);
+}
+
+.review-incorrect {
+    border-left: 5px solid var(--incorrect-color);
+}
+
+.status-tag {
+    font-size: 0.9em;
+    font-weight: normal;
+    padding: 2px 5px;
+    border-radius: 3px;
+    margin-left: 10px;
+    color: #ccc; /* Cor neutra para o status tag */
+}
+
+.text-correct {
+    color: var(--correct-color);
+    font-weight: bold;
+}
+
+.text-incorrect {
+    color: var(--incorrect-color);
+    font-weight: bold;
+}
+
+/* BOTÃO TENTAR NOVAMENTE */
 #restart-button {
     background-color: #28a745 !important; /* Cor verde para Tentar Novamente */
     border: none;
@@ -36,13 +186,17 @@
     cursor: pointer;
     font-size: 16px;
     transition: background-color 0.3s;
+    width: 100%; /* Faz o botão ocupar a largura total do container */
+    max-width: 400px;
+    margin: 20px auto 0;
+    display: block;
 }
 
 #restart-button:hover {
     background-color: #1e7e34 !important;
 }
 
-/* Adicione esta classe para garantir que o conteúdo da revisão ocupe todo o espaço */
-.review-output {
+/* Garante que o container de opções/revisão ocupe o espaço necessário */
+#options-container {
     width: 100%;
 }
