@@ -8,17 +8,26 @@
 </head>
 <body>
     <div class="quiz-container">
-        <h1>VC DO 2º MÓDULO / TIC / CFS I-25 </h1>
+        <h1 style="font-size: 1.8em;">VC DO 2º MÓDULO / TIC / CFS I-25</h1>
+        
+        <div id="timer-display" style="font-size: 1.1em; margin-bottom: 20px; color: #007bff; font-weight: bold;">Tempo: 00:00</div>
+        
         <div id="question-box">
             <h2 id="question-text"></h2>
             <div id="options-container" class="options-grid"></div>
         </div>
-        <button id="next-button" class="next-btn">Próxima Pergunta</button>
+        
+        <div class="navigation-controls" style="margin-top: 20px;">
+            <button id="prev-button" class="nav-btn prev-btn" style="display: none;">Voltar</button>
+            <button id="next-button" class="nav-btn next-btn" style="margin-left: 10px;">Próxima Questão</button>
+        </div>
+        
         <div id="result-box"></div>
     </div>
     <script src="script.js"></script>
 </body>
 
 </html>
+
 
 
