@@ -7,24 +7,35 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="quiz-container">
-        <h1 id="quiz-title" style="font-size: 1.8em;">VC DO 2º MÓDULO / TIC / CFS I-25</h1>
-        <div id="timer-display" style="font-size: 1.1em; margin-bottom: 20px; color: #4CAF50; font-weight: bold;">Tempo: 00:00</div>
-        
-        <div id="main-content">
-            <div id="question-box">
-                <h2 id="question-text"></h2>
-                <div id="options-container" class="options-grid"></div>
+    <div id="menu-container" class="quiz-container">
+        <h1>Simulado CFS - 2º Módulo</h1>
+        <p>Escolha uma disciplina para começar:</p>
+        <div id="subject-buttons">
+            </div>
+    </div>
+
+    <div id="quiz-wrapper" style="display: none;">
+        <div class="quiz-container">
+            <h1 id="quiz-title"></h1>
+            <div id="timer-display">Tempo: 00:00</div>
+            
+            <div id="main-content">
+                <div id="question-box">
+                    <h2 id="question-text"></h2>
+                    <div id="options-container" class="options-grid"></div>
+                </div>
+            </div>
+
+            <div id="review-container"></div> 
+
+            <div class="navigation-controls">
+                <button id="prev-button" class="nav-btn prev-btn">Voltar</button>
+                <button id="next-button" class="nav-btn next-btn">Próxima Questão</button>
             </div>
         </div>
-
-        <div id="review-container"></div> 
-
-        <div class="navigation-controls">
-            <button id="prev-button" class="nav-btn prev-btn">Voltar</button>
-            <button id="next-button" class="nav-btn next-btn">Próxima Questão</button>
-        </div>
     </div>
+    
     <script src="script.js"></script>
 </body>
 </html>
+
