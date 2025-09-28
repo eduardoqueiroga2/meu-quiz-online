@@ -231,16 +231,18 @@ function showFinalScore() {
     }
 }
 
-
 function getReviewHTML() {
     let reviewHTML = '<div class="review-section"><h3>Revisão Detalhada:</h3>';
     
-    // O ERRO MAIS COMUM ACONTECE AQUI: A iteração sobre o array de respostas.
+    // O ERRO MAIS COMUM ACONTECE AQUI.
     userAnswers.forEach((item, index) => {
-        const questionData = questions[index];
-        const isAnswered = item !== null;
+        // const questionData = questions[index]; // <-- ESTA LINHA FOI REMOVIDA
+        
+        // Garante que o item seja tratado, mesmo que nulo
+        const isAnswered = item !== null; 
+        
         // O item.isCorrect só existe se isAnswered for true.
-        const isCorrect = isAnswered && item.isCorrect; 
+        const isCorrect = isAnswered && item.isCorrect;
         
         const statusClass = isCorrect ? 'review-correct' : 'review-incorrect';
         const statusText = isCorrect ? 'CERTO' : (isAnswered ? 'ERRADO' : 'NÃO RESPONDIDA');
@@ -250,9 +252,9 @@ function getReviewHTML() {
 
         reviewHTML += `
             <div class="error-item ${statusClass}">
-                <p><strong>${index + 1}. ${questionData.question}</strong> <span class="status-tag">(${statusText})</span></p>
+                <p><strong>${index + 1}. ${questions[index].question}</strong> <span class="status-tag">(${statusText})</span></p>
                 <p>Sua Resposta: <span class="${isCorrect ? 'text-correct' : 'text-incorrect'}">${selectedText}</span></p>
-                <p>Resposta Correta: <span class="text-correct">${questionData.answer}</span></p>
+                <p>Resposta Correta: <span class="text-correct">${questions[index].answer}</span></p>
             </div>
             <hr>
         `;
@@ -295,6 +297,7 @@ prevButton.addEventListener('click', () => navigate(-1));
 // Inicia o quiz e o cronômetro
 startTimer();
 showQuestion();
+
 
 
 
