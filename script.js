@@ -12,7 +12,7 @@ const questions = [
             "Global, Individual, Pessoal", 
             "Global, Organizacional, Funcional"
         ],
-        answer: "Organizacional, Funcional, Pessoal" // Ajustado para o gabarito
+        answer: "Organizacional, Funcional, Pessoal"
     },
     {
         question: "Qual a legislação que trata da EaD (Educação a Distância) no âmbito da corporação?",
@@ -69,15 +69,17 @@ const quizContainer = document.querySelector('.quiz-container');
 
 let currentQuestionIndex = 0;
 let score = 0;
-let incorrectAnswers = []; // Novo array para armazenar as erradas
+// Array para armazenar o resultado COMPLETO de cada pergunta
+let questionResults = []; 
 
 function showQuestion() {
-    // Esconde o botão e limpa o feedback
+    // ... (Mantém a lógica de mostrar a pergunta e o botão)
     nextButton.style.display = 'none';
     resultBox.textContent = '';
     
     if (currentQuestionIndex < questions.length) {
         const currentQuestion = questions[currentQuestionIndex];
+        // Adiciona o contador de questão na exibição
         questionText.textContent = `${currentQuestionIndex + 1} de ${questions.length}: ${currentQuestion.question}`;
         optionsContainer.innerHTML = '';
     
@@ -85,9 +87,7 @@ function showQuestion() {
             const button = document.createElement('button');
             button.textContent = option;
             button.classList.add('option-btn');
-            // Anexa a informação da pergunta e da resposta esperada
-            button.dataset.questionIndex = currentQuestionIndex;
-            button.addEventListener('click', () => checkAnswer(button, currentQuestion.answer));
+            button.addEventListener('click', () => checkAnswer(button, currentQuestion.answer, currentQuestion));
             optionsContainer.appendChild(button);
         });
     } else {
@@ -95,13 +95,12 @@ function showQuestion() {
     }
 }
 
-function checkAnswer(selectedButton, correctAnswer) {
+function checkAnswer(selectedButton, correctAnswer, questionData) {
     const selectedOption = selectedButton.textContent;
     const allButtons = optionsContainer.querySelectorAll('.option-btn');
-    const isCorrect = selectedOption.includes(correctAnswer); // Usa includes para lidar com opções resumidas
+    const isCorrect = selectedOption.includes(correctAnswer);
     
     allButtons.forEach(button => {
-        // Marca todas as respostas para feedback visual
         if (button.textContent.includes(correctAnswer)) {
             button.classList.add('correct');
         } else {
@@ -115,14 +114,15 @@ function checkAnswer(selectedButton, correctAnswer) {
         resultBox.textContent = 'Correto!';
     } else {
         resultBox.textContent = `Incorreto. A correta era: ${correctAnswer}`;
-        // Armazena a questão errada
-        const currentQuestion = questions[currentQuestionIndex];
-        incorrectAnswers.push({
-            question: currentQuestion.question,
-            correct: correctAnswer,
-            selected: selectedOption
-        });
     }
+
+    // Armazena o resultado completo da pergunta
+    questionResults.push({
+        question: questionData.question,
+        correct: correctAnswer,
+        selected: selectedOption,
+        isCorrect: isCorrect
+    });
 
     nextButton.style.display = 'block';
 }
@@ -136,27 +136,29 @@ function showFinalScore() {
     questionText.textContent = 'Quiz Finalizado!';
     optionsContainer.innerHTML = '';
     
-    // Mostra o resultado final
+    // Altera o conteúdo do container para o resumo final e a revisão
     const finalScoreHTML = `
         <div class="final-score">
-            <h2>Sua pontuação final é ${score} de ${questions.length}.</h2>
-            ${incorrectAnswers.length > 0 
-                ? `<p>Você errou ${incorrectAnswers.length} questões. Abaixo está a sua revisão:</p>` 
-                : '<p>Parabéns, você não errou nenhuma!</p>'}
+            <h2>Pontuação Final: ${score} de ${questions.length} (${((score / questions.length) * 100).toFixed(0)}%)</h2>
+            <p>Abaixo está a revisão completa de todas as ${questions.length} questões:</p>
         </div>
     `;
-    quizContainer.innerHTML = finalScoreHTML + (incorrectAnswers.length > 0 ? getReviewHTML() : '');
+    quizContainer.innerHTML = finalScoreHTML + getReviewHTML();
 }
 
+// Nova função para gerar a revisão COMPLETA
 function getReviewHTML() {
-    let reviewHTML = '<div class="review-section"><h3>Revisão dos Erros:</h3>';
+    let reviewHTML = '<div class="review-section"><h3>Revisão Detalhada:</h3>';
     
-    incorrectAnswers.forEach((item, index) => {
+    questionResults.forEach((item, index) => {
+        const statusClass = item.isCorrect ? 'review-correct' : 'review-incorrect';
+        const statusText = item.isCorrect ? 'CERTO' : 'ERRADO';
+        
         reviewHTML += `
-            <div class="error-item">
-                <p><strong>${index + 1}. Pergunta:</strong> ${item.question}</p>
-                <p style="color: red;">Você Respondeu: ${item.selected}</p>
-                <p style="color: green;">Resposta Correta: ${item.correct}</p>
+            <div class="error-item ${statusClass}">
+                <p><strong>${index + 1}. ${item.question}</strong> <span class="status-tag">(${statusText})</span></p>
+                <p>Resposta Selecionada: <span class="${item.isCorrect ? 'text-correct' : 'text-incorrect'}">${item.selected}</span></p>
+                ${!item.isCorrect ? `<p>Resposta Correta: <span class="text-correct">${item.correct}</span></p>` : ''}
             </div>
             <hr>
         `;
@@ -170,4 +172,3 @@ nextButton.addEventListener('click', nextQuestion);
 
 // Inicia o quiz
 showQuestion();
-
