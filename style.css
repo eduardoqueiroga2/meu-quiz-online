@@ -1,146 +1,48 @@
-/* GERAL E TEMA ESCURO */
-:root {
-    --bg-color: #1a1a1a;
-    --text-color: #f0f0f0;
-    --card-bg: #2d2d2d;
-    --shadow-color: rgba(0, 0, 0, 0.5);
-    --button-bg: #444;
-    --button-hover: #555;
-    --main-accent: #007bff;
-    --correct-color: #4CAF50;
-    --incorrect-color: #f44336;
+/* Atualize a cor do timer para combinar com a correção */
+#timer-display {
+    color: var(--correct-color) !important;
 }
 
-body {
-    font-family: Arial, sans-serif;
-    background-color: var(--bg-color);
-    color: var(--text-color);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
-}
-
-.quiz-container {
-    background-color: var(--card-bg);
-    padding: 30px;
-    border-radius: 10px;
-    box-shadow: 0 4px 20px var(--shadow-color);
-    width: 90%;
-    max-width: 600px;
-    text-align: center;
-}
-
-h1, h2 {
-    color: var(--text-color);
-}
-
-#question-text {
-    color: var(--text-color);
-    margin-bottom: 25px;
-}
-
-/* OPÇÕES */
-.options-grid {
-    display: grid;
-    gap: 12px;
-}
-
-.option-btn {
-    background-color: var(--button-bg);
-    color: var(--text-color);
-    border: 1px solid #555;
-    padding: 14px 20px;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s, border-color 0.3s;
-    text-align: center;
-}
-
-.option-btn:hover:not(:disabled) {
-    background-color: var(--button-hover);
-}
-
-/* FEEDBACK */
-.option-btn.correct {
-    background-color: var(--correct-color);
-    border-color: var(--correct-color);
-    color: white;
-}
-
-.option-btn.incorrect {
-    background-color: var(--incorrect-color);
-    border-color: var(--incorrect-color);
-    color: white;
-}
-
-/* BOTÃO PRÓXIMA */
-.next-btn {
+/* Novo estilo para os botões de navegação, alinhando um à esquerda e outro à direita */
+.navigation-controls {
     margin-top: 25px;
-    background-color: var(--main-accent);
+    display: flex;
+    justify-content: space-between; /* Alinha um à esquerda e o outro à direita */
+    width: 100%;
+}
+
+.nav-btn {
+    background-color: var(--main-accent); /* Cor principal do botão */
     color: white;
     border: none;
     padding: 12px 25px;
     border-radius: 6px;
     cursor: pointer;
     font-size: 16px;
-    display: none;
+    transition: background-color 0.3s;
+    flex-grow: 0; /* Impede que os botões se expandam */
 }
 
-#result-box {
-    margin-top: 15px;
-    font-weight: bold;
-    font-size: 18px;
+.nav-btn:hover {
+    background-color: #0056b3; /* Tom mais escuro para hover */
 }
 
-/* REVISÃO FINAL */
-.review-section {
-    text-align: left;
-    margin-top: 35px;
-    padding: 15px;
-    border: 1px solid #444;
-    border-radius: 8px;
-    background-color: #383838;
+/* Ajuste o estilo do botão "Tentar Novamente" para usar o mesmo padrão */
+#restart-button {
+    background-color: #28a745 !important; /* Cor verde para Tentar Novamente */
+    border: none;
+    padding: 12px 25px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
 }
 
-.error-item {
-    margin-bottom: 20px;
-    padding: 10px;
-    border-radius: 4px;
+#restart-button:hover {
+    background-color: #1e7e34 !important;
 }
 
-.error-item hr {
-    border: 0;
-    height: 1px;
-    background: #444;
-    margin: 15px 0;
-}
-
-/* Cores de status na Revisão */
-.review-correct {
-    border-left: 5px solid var(--correct-color);
-}
-
-.review-incorrect {
-    border-left: 5px solid var(--incorrect-color);
-}
-
-.status-tag {
-    font-size: 0.9em;
-    font-weight: normal;
-    padding: 2px 5px;
-    border-radius: 3px;
-    margin-left: 10px;
-}
-
-.text-correct {
-    color: var(--correct-color);
-    font-weight: bold;
-}
-
-.text-incorrect {
-    color: var(--incorrect-color);
-    font-weight: bold;
+/* Adicione esta classe para garantir que o conteúdo da revisão ocupe todo o espaço */
+.review-output {
+    width: 100%;
 }
