@@ -580,8 +580,10 @@ function goToMenu() {
 }
 
 
-// --- EVENT LISTENERS ---
+// --- EVENT LISTENERS E INICIALIZAÇÃO ---
+
 nextButton.addEventListener('click', () => {
+    // Lógica para avançar para a próxima questão ou finalizar o quiz
     if (currentQuestionIndex < activeQuestions.length - 1) {
         navigate(1);
     } else {
@@ -590,8 +592,15 @@ nextButton.addEventListener('click', () => {
 });
 
 prevButton.addEventListener('click', () => {
-    if (currentQuestionIndex > 0) navigate(-1);
+    // Lógica para voltar para a questão anterior
+    if (currentQuestionIndex > 0) {
+        navigate(-1);
+    }
 });
+
+// Inicia a aplicação criando o menu quando a página carrega
+window.onload = createMenu;
+
 
 
 
