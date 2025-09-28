@@ -489,42 +489,6 @@ function selectAnswer(selectedOption) {
     });
 }
 
-function showSavedAnswer() {
-    const savedAnswer = userAnswers[currentQuestionIndex];
-    if (!savedAnswer) return;
-
-    if (savedAnswer.type === 'multiple_choice') {
-        const optionButtons = optionsContainer.querySelectorAll('.option-btn');
-        optionButtons.forEach(btn => {
-            btn.disabled = true;
-            if (btn.textContent === savedAnswer.correct) btn.classList.add('correct');
-            else if (btn.textContent === savedAnswer.selected) btn.classList.add('incorrect');
-        });
-    } else if (savedAnswer.type === 'dissertative') {
-        const textArea = optionsContainer.querySelector('.dissertative-input');
-        const showAnswerBtn = optionsContainer.querySelector('.nav-btn');
-        if(textArea) textArea.value = savedAnswer.answer;
-        if(textArea) textArea.disabled = true;
-        if(showAnswerBtn) showAnswerBtn.style.display = 'none';
-
-        const standardAnswerBox = document.createElement('div');
-        standardAnswerBox.classList.add('standard-answer-box');
-        standardAnswerBox.innerHTML = `<h4>Resposta Padrão:</h4><p>${activeQuestions[currentQuestionIndex].standard_answer}</p>`;
-        optionsContainer.appendChild(standardAnswerBox);
-    }
-}
-
-function updateNavigationButtons() {
-    prevButton.style.display = currentQuestionIndex > 0 ? 'inline-block' : 'none';
-    nextButton.textContent = currentQuestionIndex === activeQuestions.length - 1 ? 'Finalizar Quiz' : 'Próxima Questão';
-}
-
-function navigate(direction) {
-    currentQuestionIndex += direction;
-    showQuestion();
-}
-
-// --- REVISÃO E REINÍCIO (MODIFICADOS) ---
 function showFinalScore() {
     stopTimer();
     mainContent.style.display = 'none';
@@ -545,9 +509,24 @@ function showFinalScore() {
 
     activeQuestions.forEach((question, index) => {
         const userAnswer = userAnswers[index];
+        
         if (question.type === 'multiple_choice') {
-            // ... (código de revisão para múltipla escolha, sem alteração)
-        } else if (question.type === 'dissertative') {
+            const isAnswered = userAnswer !== null;
+            const isCorrect = isAnswered && userAnswer.isCorrect;
+            const statusClass = isCorrect ? 'review-correct' : 'review-incorrect';
+            const statusText = isAnswered ? (isCorrect ? 'CERTO' : 'ERRADO') : 'NÃO RESPONDIDA';
+            const selectedText = isAnswered ? userAnswer.selected : 'Nenhuma (Questão pulada)';
+            const selectedClass = isCorrect ? 'text-correct' : 'text-incorrect';
+
+            reviewHTML += `
+                <div class="error-item ${statusClass}">
+                    <p><strong>${index + 1}. (${question.subject}) ${question.question}</strong> <span class="status-tag">(${statusText})</span></p>
+                    <p>Sua Resposta: <span class="${selectedClass}">${selectedText}</span></p>
+                    ${!isCorrect ? `<p>Resposta Correta: <span class="text-correct">${question.answer}</span></p>` : ''}
+                </div><hr>`;
+        } 
+        // BLOCO PARA DISSERTATIVA (JÁ ESTAVA CORRETO)
+        else if (question.type === 'dissertative') {
             const userAnswerText = userAnswer ? userAnswer.answer : 'Não respondida.';
             reviewHTML += `
                 <div class="error-item review-dissertative">
@@ -588,4 +567,5 @@ nextButton.addEventListener('click', () => {
 prevButton.addEventListener('click', () => {
     if (currentQuestionIndex > 0) navigate(-1);
 });
+
 
