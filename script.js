@@ -61,104 +61,180 @@ const questions = [
     }
 ];
 
+// Elementos HTML
 const questionText = document.getElementById('question-text');
 const optionsContainer = document.getElementById('options-container');
 const nextButton = document.getElementById('next-button');
-const resultBox = document.getElementById('result-box');
+const prevButton = document.getElementById('prev-button');
+const finishButton = document.getElementById('finish-button');
+const timerDisplay = document.getElementById('timer-display');
 const quizContainer = document.querySelector('.quiz-container');
 
+// Variáveis de Estado
 let currentQuestionIndex = 0;
 let score = 0;
-// Array para armazenar o resultado COMPLETO de cada pergunta
-let questionResults = []; 
+let intervalId;
+let seconds = 0;
+
+// Novo array: armazena a resposta de cada questão, mesmo se a pessoa pular
+let userAnswers = Array(questions.length).fill(null); 
+let questionAnsweredStatus = Array(questions.length).fill(false);
+
+
+// --- FUNÇÕES DE CRONÔMETRO ---
+
+function formatTime(totalSeconds) {
+    const minutes = Math.floor(totalSeconds / 60);
+    const remainingSeconds = totalSeconds % 60;
+    const paddedMinutes = String(minutes).padStart(2, '0');
+    const paddedSeconds = String(remainingSeconds).padStart(2, '0');
+    return `${paddedMinutes}:${paddedSeconds}`;
+}
+
+function startTimer() {
+    intervalId = setInterval(() => {
+        seconds++;
+        timerDisplay.textContent = `Tempo: ${formatTime(seconds)}`;
+    }, 1000);
+}
+
+function stopTimer() {
+    clearInterval(intervalId);
+}
+
+
+// --- FUNÇÕES DE NAVEGAÇÃO E EXIBIÇÃO ---
+
+function updateNavigationButtons() {
+    prevButton.style.display = currentQuestionIndex > 0 ? 'inline-block' : 'none';
+    
+    // O botão de Próximo é sempre exibido, a menos que seja a última questão
+    if (currentQuestionIndex < questions.length - 1) {
+        nextButton.textContent = 'Próxima Questão';
+        nextButton.style.display = 'inline-block';
+        finishButton.style.display = 'none';
+    } else {
+        // Na última questão, o botão "Próxima" vira "Finalizar"
+        nextButton.textContent = 'Finalizar Quiz';
+        nextButton.style.display = 'inline-block';
+        finishButton.style.display = 'none';
+    }
+}
 
 function showQuestion() {
-    // ... (Mantém a lógica de mostrar a pergunta e o botão)
-    nextButton.style.display = 'none';
-    resultBox.textContent = '';
-    
-    if (currentQuestionIndex < questions.length) {
-        const currentQuestion = questions[currentQuestionIndex];
-        // Adiciona o contador de questão na exibição
-        questionText.textContent = `${currentQuestionIndex + 1} de ${questions.length}: ${currentQuestion.question}`;
-        optionsContainer.innerHTML = '';
-    
-        currentQuestion.options.forEach(option => {
-            const button = document.createElement('button');
-            button.textContent = option;
-            button.classList.add('option-btn');
-            button.addEventListener('click', () => checkAnswer(button, currentQuestion.answer, currentQuestion));
-            optionsContainer.appendChild(button);
-        });
-    } else {
+    if (currentQuestionIndex >= questions.length) {
+        stopTimer();
         showFinalScore();
+        return;
     }
+
+    const currentQuestion = questions[currentQuestionIndex];
+    questionText.textContent = `${currentQuestionIndex + 1} de ${questions.length}: ${currentQuestion.question}`;
+    optionsContainer.innerHTML = '';
+
+    currentQuestion.options.forEach(option => {
+        const button = document.createElement('button');
+        button.textContent = option;
+        button.classList.add('option-btn');
+        
+        // Verifica se a questão já foi respondida e aplica o estilo/estado
+        if (questionAnsweredStatus[currentQuestionIndex]) {
+            button.disabled = true;
+            if (option === userAnswers[currentQuestionIndex].correctAnswer) {
+                button.classList.add('correct');
+            } else if (option === userAnswers[currentQuestionIndex].selectedAnswer) {
+                button.classList.add('incorrect');
+            }
+        } else {
+            // Adiciona o evento de clique SÓ se a questão ainda não foi respondida
+            button.addEventListener('click', () => checkAnswer(button, currentQuestion.answer, currentQuestion));
+        }
+
+        optionsContainer.appendChild(button);
+    });
+
+    updateNavigationButtons();
+}
+
+function navigate(direction) {
+    // 1 para avançar, -1 para voltar
+    currentQuestionIndex += direction;
+    showQuestion();
 }
 
 function checkAnswer(selectedButton, correctAnswer, questionData) {
     const selectedOption = selectedButton.textContent;
-    const allButtons = optionsContainer.querySelectorAll('.option-btn');
     const isCorrect = selectedOption.includes(correctAnswer);
-    
-    allButtons.forEach(button => {
+
+    // Marca a questão como respondida
+    questionAnsweredStatus[currentQuestionIndex] = true;
+
+    // Armazena o resultado no novo formato de userAnswers
+    userAnswers[currentQuestionIndex] = {
+        question: questionData.question,
+        correctAnswer: correctAnswer,
+        selectedAnswer: selectedOption,
+        isCorrect: isCorrect
+    };
+
+    // Aplica o feedback visual
+    optionsContainer.querySelectorAll('.option-btn').forEach(button => {
         if (button.textContent.includes(correctAnswer)) {
             button.classList.add('correct');
         } else {
             button.classList.add('incorrect');
         }
-        button.disabled = true;
+        button.disabled = true; // Desabilita todos os botões após responder
     });
-
-    if (isCorrect) {
-        score++;
-        resultBox.textContent = 'Correto!';
-    } else {
-        resultBox.textContent = `Incorreto. A correta era: ${correctAnswer}`;
-    }
-
-    // Armazena o resultado completo da pergunta
-    questionResults.push({
-        question: questionData.question,
-        correct: correctAnswer,
-        selected: selectedOption,
-        isCorrect: isCorrect
-    });
-
-    nextButton.style.display = 'block';
 }
 
-function nextQuestion() {
-    currentQuestionIndex++;
-    showQuestion();
+
+// --- FUNÇÃO DE FINALIZAÇÃO E REVISÃO ---
+
+function calculateScore() {
+    score = userAnswers.filter(answer => answer && answer.isCorrect).length;
 }
 
 function showFinalScore() {
+    calculateScore();
+    const finalTime = formatTime(seconds);
+    
     questionText.textContent = 'Quiz Finalizado!';
     optionsContainer.innerHTML = '';
     
-    // Altera o conteúdo do container para o resumo final e a revisão
+    // Altera o conteúdo do container para o resumo final
     const finalScoreHTML = `
         <div class="final-score">
-            <h2>Pontuação Final: ${score} de ${questions.length} (${((score / questions.length) * 100).toFixed(0)}%)</h2>
-            <p>Abaixo está a revisão completa de todas as ${questions.length} questões:</p>
+            <h2>Resultados da Avaliação</h2>
+            <p>Pontuação: ${score} de ${questions.length} (${((score / questions.length) * 100).toFixed(0)}%)</p>
+            <p>Tempo total gasto: ${finalTime}</p>
         </div>
     `;
     quizContainer.innerHTML = finalScoreHTML + getReviewHTML();
+    
+    // Adiciona o formulário de e-mail APÓS a revisão
+    quizContainer.innerHTML += getEmailFormHTML();
+    document.getElementById('send-email-button').addEventListener('click', sendEmail);
 }
 
-// Nova função para gerar a revisão COMPLETA
+// Título de Revisão Completa
 function getReviewHTML() {
-    let reviewHTML = '<div class="review-section"><h3>Revisão Detalhada:</h3>';
+    let reviewHTML = '<div class="review-section"><h3>Revisão Completa:</h3>';
     
-    questionResults.forEach((item, index) => {
-        const statusClass = item.isCorrect ? 'review-correct' : 'review-incorrect';
-        const statusText = item.isCorrect ? 'CERTO' : 'ERRADO';
+    userAnswers.forEach((item, index) => {
+        // Se a questão não foi respondida (pulada), mostra como erro para fins de revisão
+        const isAnswered = item !== null;
+        const isCorrect = isAnswered && item.isCorrect;
+        const statusClass = isCorrect ? 'review-correct' : 'review-incorrect';
+        const statusText = isCorrect ? 'CERTO' : (isAnswered ? 'ERRADO' : 'NÃO RESPONDIDA');
         
         reviewHTML += `
             <div class="error-item ${statusClass}">
-                <p><strong>${index + 1}. ${item.question}</strong> <span class="status-tag">(${statusText})</span></p>
-                <p>Resposta Selecionada: <span class="${item.isCorrect ? 'text-correct' : 'text-incorrect'}">${item.selected}</span></p>
-                ${!item.isCorrect ? `<p>Resposta Correta: <span class="text-correct">${item.correct}</span></p>` : ''}
+                <p><strong>${index + 1}. ${questions[index].question}</strong> <span class="status-tag">(${statusText})</span></p>
+                ${isAnswered ? 
+                    `<p>Sua Resposta: <span class="${isCorrect ? 'text-correct' : 'text-incorrect'}">${item.selectedAnswer}</span></p>`
+                    : '<p>Sua Resposta: Nenhuma (Questão pulada)</p>'}
+                <p>Resposta Correta: <span class="text-correct">${questions[index].answer}</span></p>
             </div>
             <hr>
         `;
@@ -168,7 +244,59 @@ function getReviewHTML() {
     return reviewHTML;
 }
 
-nextButton.addEventListener('click', nextQuestion);
 
-// Inicia o quiz
+// --- FUNÇÃO DE E-MAIL (Simulação) ---
+
+function getEmailFormHTML() {
+    return `
+        <div class="email-form" style="margin-top: 30px; padding: 20px; border: 1px solid #555; border-radius: 8px;">
+            <h3>Enviar Revisão por E-mail</h3>
+            <p>Para que o envio de e-mail funcione, é necessário um serviço de back-end (servidor). Por enquanto, usamos um serviço de terceiros:</p>
+            <input type="email" id="user-email" placeholder="Seu e-mail aqui" style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; background-color: #444; color: white; border: 1px solid #555; border-radius: 4px;">
+            <button id="send-email-button" style="background-color: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Enviar Resultados</button>
+            <p id="email-feedback" style="margin-top: 10px;"></p>
+        </div>
+    `;
+}
+
+function sendEmail() {
+    const userEmail = document.getElementById('user-email').value;
+    const feedback = document.getElementById('email-feedback');
+    
+    if (!userEmail || !userEmail.includes('@')) {
+        feedback.textContent = 'Por favor, insira um e-mail válido.';
+        feedback.style.color = '#f44336';
+        return;
+    }
+    
+    // ATENÇÃO: Envio de e-mail do navegador só funciona com serviços de terceiros (como EmailJS, FormSubmit, etc.)
+    // O código abaixo é uma SIMULAÇÃO do que um serviço de back-end faria:
+    
+    feedback.textContent = `Preparando e-mail para ${userEmail}...`;
+    feedback.style.color = 'yellow';
+    
+    // Simulação de delay de envio
+    setTimeout(() => {
+        feedback.textContent = `Sucesso! O e-mail foi "enviado" para ${userEmail}. (Lembre-se: usei um serviço simulado, você precisará de uma chave API real!)`;
+        feedback.style.color = '#4CAF50';
+    }, 2000);
+}
+
+
+// --- EVENT LISTENERS E INICIALIZAÇÃO ---
+
+nextButton.addEventListener('click', () => {
+    // Se for a última questão, chame showFinalScore
+    if (currentQuestionIndex === questions.length - 1) {
+        stopTimer();
+        showFinalScore();
+    } else {
+        navigate(1); // Caso contrário, avança
+    }
+});
+
+prevButton.addEventListener('click', () => navigate(-1));
+
+// Inicia o quiz e o cronômetro
+startTimer();
 showQuestion();
