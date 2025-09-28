@@ -61,16 +61,14 @@ const questions = [
     }
 ];
 
-// Elementos HTML
-const quizTitle = document.getElementById('quiz-title'); // Novo ID no HTML
-const questionText = document.getElementById('question-text');
-const optionsContainer = document.getElementById('options-container');
-const nextButton = document.getElementById('next-button');
-const prevButton = document.getElementById('prev-button');
-const timerDisplay = document.getElementById('timer-display');
-const mainContent = document.getElementById('main-content'); // Novo ID para conteúdo que será substituído
-const quizContainer = document.querySelector('.quiz-container');
-const mainContent = document.getElementById('main-content'); 
+// Elementos HTML (Declarações obrigatórias no topo do script.js)
+const quizTitle = document.getElementById('quiz-title'); // Título do módulo
+const timerDisplay = document.getElementById('timer-display'); // Cronômetro
+const questionText = document.getElementById('question-text'); // ESTE É O CRÍTICO: Onde vai o texto da pergunta
+const optionsContainer = document.getElementById('options-container'); // Onde vão as opções
+const mainContent = document.getElementById('main-content'); // Container principal (para esconder/mostrar)
+const prevButton = document.getElementById('prev-button'); // Botão Voltar
+const nextButton = document.getElementById('next-button'); // Botão Próxima
 
 // Variáveis de Estado
 let currentQuestionIndex = 0;
@@ -293,6 +291,7 @@ prevButton.addEventListener('click', () => navigate(-1));
 // Inicia o quiz e o cronômetro
 startTimer();
 showQuestion();
+
 
 
 
