@@ -32,8 +32,8 @@ const questions = [
     },
     {
         question: "No Microsoft Word, qual é o atalho utilizado para sublinhar um texto?",
-        options: ["Ctrl + S", "Ctrl + B", "Ctrl + I", "Ctrl + U"],
-        answer: "Ctrl + U"
+        options: ["Ctrl + S", "Ctrl + B", "Ctrl + I", "Ctrl + U"], 
+        answer: "Ctrl + S" // Resposta correta para a versão PT-BR
     },
     {
         question: "Qual é o principal objetivo de uma VPN em redes corporativas?",
@@ -261,3 +261,4 @@ window.onload = () => {
     startTimer();
     showQuestion();
 };
+
