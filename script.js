@@ -187,7 +187,7 @@ function checkAnswer(selectedButton, correctAnswer, questionData) {
 }
 
 
-// --- FUNÇÃO DE FINALIZAÇÃO E REVISÃO CORRIGIDA ---
+// --- FUNÇÃO DE FINALIZAÇÃO E REVISÃO (Versão Corrigida Final) ---
 
 function calculateScore() {
     score = userAnswers.filter(answer => answer && answer.isCorrect).length;
@@ -197,12 +197,11 @@ function showFinalScore() {
     calculateScore();
     const finalTime = formatTime(seconds);
     
-    // 1. Esconde o conteúdo principal do quiz (perguntas e navegação)
-    // Se mainContent não for encontrado, esta linha pode estar falhando.
-    // Garantir que o ID 'main-content' existe no seu HTML é crucial.
+    // 1. Esconde o conteúdo principal do quiz
+    // Agora que as variáveis estão corretas, este passo deve funcionar
     mainContent.style.display = 'none'; 
     
-    // 2. Altera o título principal para 'Revisão Completa'
+    // 2. Altera o título principal
     quizTitle.textContent = 'Revisão Completa'; 
     
     // 3. Altera o display do cronômetro para mostrar o tempo final
@@ -217,6 +216,7 @@ function showFinalScore() {
     `;
 
     // 5. Monta o HTML completo (Cabeçalho + Revisão + Botão)
+    // O erro pode estar na chamada a getReviewHTML() se ela estiver mal formatada
     const finalReviewHTML = resultsHeaderHTML + 
                             getReviewHTML() + 
                             `<button id="restart-button" class="nav-btn next-btn" style="margin-top: 30px; margin-bottom: 20px;">Tentar Novamente</button>`;
@@ -231,13 +231,17 @@ function showFinalScore() {
     }
 }
 
+
 function getReviewHTML() {
     let reviewHTML = '<div class="review-section"><h3>Revisão Detalhada:</h3>';
     
+    // O ERRO MAIS COMUM ACONTECE AQUI: A iteração sobre o array de respostas.
     userAnswers.forEach((item, index) => {
         const questionData = questions[index];
         const isAnswered = item !== null;
-        const isCorrect = isAnswered && item.isCorrect;
+        // O item.isCorrect só existe se isAnswered for true.
+        const isCorrect = isAnswered && item.isCorrect; 
+        
         const statusClass = isCorrect ? 'review-correct' : 'review-incorrect';
         const statusText = isCorrect ? 'CERTO' : (isAnswered ? 'ERRADO' : 'NÃO RESPONDIDA');
         
@@ -291,6 +295,7 @@ prevButton.addEventListener('click', () => navigate(-1));
 // Inicia o quiz e o cronômetro
 startTimer();
 showQuestion();
+
 
 
 
