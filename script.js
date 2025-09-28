@@ -62,21 +62,19 @@ const questions = [
 ];
 
 // Elementos HTML
+const quizTitle = document.getElementById('quiz-title'); // Novo ID no HTML
 const questionText = document.getElementById('question-text');
 const optionsContainer = document.getElementById('options-container');
 const nextButton = document.getElementById('next-button');
 const prevButton = document.getElementById('prev-button');
-const finishButton = document.getElementById('finish-button');
 const timerDisplay = document.getElementById('timer-display');
-const quizContainer = document.querySelector('.quiz-container');
+const mainContent = document.getElementById('main-content'); // Novo ID para conteúdo que será substituído
 
 // Variáveis de Estado
 let currentQuestionIndex = 0;
 let score = 0;
 let intervalId;
 let seconds = 0;
-
-// Novo array: armazena a resposta de cada questão, mesmo se a pessoa pular
 let userAnswers = Array(questions.length).fill(null); 
 let questionAnsweredStatus = Array(questions.length).fill(false);
 
@@ -106,22 +104,22 @@ function stopTimer() {
 // --- FUNÇÕES DE NAVEGAÇÃO E EXIBIÇÃO ---
 
 function updateNavigationButtons() {
+    // Esconde/mostra o botão Voltar
     prevButton.style.display = currentQuestionIndex > 0 ? 'inline-block' : 'none';
     
-    // O botão de Próximo é sempre exibido, a menos que seja a última questão
+    // Altera o texto do botão de avançar na última questão
     if (currentQuestionIndex < questions.length - 1) {
         nextButton.textContent = 'Próxima Questão';
-        nextButton.style.display = 'inline-block';
-        finishButton.style.display = 'none';
     } else {
-        // Na última questão, o botão "Próxima" vira "Finalizar"
         nextButton.textContent = 'Finalizar Quiz';
-        nextButton.style.display = 'inline-block';
-        finishButton.style.display = 'none';
     }
 }
 
 function showQuestion() {
+    // Altera o título para o padrão do quiz
+    quizTitle.textContent = 'VC DO 2º MÓDULO / TIC / CFS I-25';
+    mainContent.style.display = 'block';
+
     if (currentQuestionIndex >= questions.length) {
         stopTimer();
         showFinalScore();
@@ -137,7 +135,7 @@ function showQuestion() {
         button.textContent = option;
         button.classList.add('option-btn');
         
-        // Verifica se a questão já foi respondida e aplica o estilo/estado
+        // Aplica o estado visual da resposta salva
         if (questionAnsweredStatus[currentQuestionIndex]) {
             button.disabled = true;
             if (option === userAnswers[currentQuestionIndex].correctAnswer) {
@@ -169,7 +167,7 @@ function checkAnswer(selectedButton, correctAnswer, questionData) {
     // Marca a questão como respondida
     questionAnsweredStatus[currentQuestionIndex] = true;
 
-    // Armazena o resultado no novo formato de userAnswers
+    // Armazena o resultado
     userAnswers[currentQuestionIndex] = {
         question: questionData.question,
         correctAnswer: correctAnswer,
@@ -199,42 +197,46 @@ function showFinalScore() {
     calculateScore();
     const finalTime = formatTime(seconds);
     
-    questionText.textContent = 'Quiz Finalizado!';
-    optionsContainer.innerHTML = '';
+    // Esconde o conteúdo principal do quiz e mostra apenas a revisão
+    mainContent.style.display = 'none'; 
+    quizTitle.textContent = 'Revisão Completa'; // Novo Título
     
-    // Altera o conteúdo do container para o resumo final
-    const finalScoreHTML = `
+    // Gera o HTML da revisão e do botão "Tentar Novamente"
+    const finalReviewHTML = `
         <div class="final-score">
             <h2>Resultados da Avaliação</h2>
             <p>Pontuação: ${score} de ${questions.length} (${((score / questions.length) * 100).toFixed(0)}%)</p>
             <p>Tempo total gasto: ${finalTime}</p>
         </div>
+        ${getReviewHTML()}
+        <button id="restart-button" class="nav-btn next-btn" style="margin-top: 30px; margin-bottom: 20px;">Tentar Novamente</button>
     `;
-    quizContainer.innerHTML = finalScoreHTML + getReviewHTML();
     
-    // Adiciona o formulário de e-mail APÓS a revisão
-    quizContainer.innerHTML += getEmailFormHTML();
-    document.getElementById('send-email-button').addEventListener('click', sendEmail);
+    // Insere o conteúdo no container
+    optionsContainer.innerHTML = finalReviewHTML;
+    
+    // Adiciona o listener para o botão de Reiniciar
+    document.getElementById('restart-button').addEventListener('click', restartQuiz);
 }
 
-// Título de Revisão Completa
 function getReviewHTML() {
-    let reviewHTML = '<div class="review-section"><h3>Revisão Completa:</h3>';
+    let reviewHTML = '<div class="review-section"><h3>Revisão Detalhada:</h3>';
     
     userAnswers.forEach((item, index) => {
-        // Se a questão não foi respondida (pulada), mostra como erro para fins de revisão
+        const questionData = questions[index];
         const isAnswered = item !== null;
         const isCorrect = isAnswered && item.isCorrect;
         const statusClass = isCorrect ? 'review-correct' : 'review-incorrect';
         const statusText = isCorrect ? 'CERTO' : (isAnswered ? 'ERRADO' : 'NÃO RESPONDIDA');
         
+        // Define a resposta selecionada ou a mensagem de pulada
+        const selectedText = isAnswered ? item.selectedAnswer : 'Nenhuma (Questão pulada)';
+
         reviewHTML += `
             <div class="error-item ${statusClass}">
-                <p><strong>${index + 1}. ${questions[index].question}</strong> <span class="status-tag">(${statusText})</span></p>
-                ${isAnswered ? 
-                    `<p>Sua Resposta: <span class="${isCorrect ? 'text-correct' : 'text-incorrect'}">${item.selectedAnswer}</span></p>`
-                    : '<p>Sua Resposta: Nenhuma (Questão pulada)</p>'}
-                <p>Resposta Correta: <span class="text-correct">${questions[index].answer}</span></p>
+                <p><strong>${index + 1}. ${questionData.question}</strong> <span class="status-tag">(${statusText})</span></p>
+                <p>Sua Resposta: <span class="${isCorrect ? 'text-correct' : 'text-incorrect'}">${selectedText}</span></p>
+                <p>Resposta Correta: <span class="text-correct">${questionData.answer}</span></p>
             </div>
             <hr>
         `;
@@ -244,47 +246,24 @@ function getReviewHTML() {
     return reviewHTML;
 }
 
-
-// --- FUNÇÃO DE E-MAIL (Simulação) ---
-
-function getEmailFormHTML() {
-    return `
-        <div class="email-form" style="margin-top: 30px; padding: 20px; border: 1px solid #555; border-radius: 8px;">
-            <h3>Enviar Revisão por E-mail</h3>
-            <p>Para que o envio de e-mail funcione, é necessário um serviço de back-end (servidor). Por enquanto, usamos um serviço de terceiros:</p>
-            <input type="email" id="user-email" placeholder="Seu e-mail aqui" style="width: 100%; padding: 10px; margin-bottom: 10px; box-sizing: border-box; background-color: #444; color: white; border: 1px solid #555; border-radius: 4px;">
-            <button id="send-email-button" style="background-color: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">Enviar Resultados</button>
-            <p id="email-feedback" style="margin-top: 10px;"></p>
-        </div>
-    `;
-}
-
-function sendEmail() {
-    const userEmail = document.getElementById('user-email').value;
-    const feedback = document.getElementById('email-feedback');
+function restartQuiz() {
+    // Reseta todas as variáveis de estado
+    currentQuestionIndex = 0;
+    score = 0;
+    seconds = 0;
+    userAnswers = Array(questions.length).fill(null);
+    questionAnsweredStatus = Array(questions.length).fill(false);
+    optionsContainer.innerHTML = '';
     
-    if (!userEmail || !userEmail.includes('@')) {
-        feedback.textContent = 'Por favor, insira um e-mail válido.';
-        feedback.style.color = '#f44336';
-        return;
-    }
-    
-    // ATENÇÃO: Envio de e-mail do navegador só funciona com serviços de terceiros (como EmailJS, FormSubmit, etc.)
-    // O código abaixo é uma SIMULAÇÃO do que um serviço de back-end faria:
-    
-    feedback.textContent = `Preparando e-mail para ${userEmail}...`;
-    feedback.style.color = 'yellow';
-    
-    // Simulação de delay de envio
-    setTimeout(() => {
-        feedback.textContent = `Sucesso! O e-mail foi "enviado" para ${userEmail}. (Lembre-se: usei um serviço simulado, você precisará de uma chave API real!)`;
-        feedback.style.color = '#4CAF50';
-    }, 2000);
+    // Reinicia o quiz
+    startTimer();
+    showQuestion();
 }
 
 
 // --- EVENT LISTENERS E INICIALIZAÇÃO ---
 
+// Inicialização: precisa que o cronômetro comece
 nextButton.addEventListener('click', () => {
     // Se for a última questão, chame showFinalScore
     if (currentQuestionIndex === questions.length - 1) {
