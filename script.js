@@ -361,7 +361,6 @@ let seconds = 0;
 let userAnswers = [];
 
 // --- FLUXO PRINCIPAL ---
-window.onload = createMenu; // Inicia criando o menu
 
 function createMenu() {
     subjectButtonsContainer.innerHTML = ''; // Limpa botões antigos
@@ -600,6 +599,7 @@ prevButton.addEventListener('click', () => {
 
 // Inicia a aplicação criando o menu quando a página carrega
 window.onload = createMenu;
+
 
 
 
