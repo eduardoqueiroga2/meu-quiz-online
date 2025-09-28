@@ -1,3 +1,4 @@
+// Array de questões (sem alterações, exceto a correção que já fiz no atalho do Word)
 const questions = [
     {
         question: "Qual dos componentes abaixo é considerado um dispositivo de saída (output)?",
@@ -31,7 +32,7 @@ const questions = [
     },
     {
         question: "No Microsoft Word, qual é o atalho utilizado para sublinhar um texto?",
-        options: ["Ctrl + S", "Ctrl + B", "Ctrl + I", "Ctrl + U"], // CORRIGIDO: Ctrl + U para Sublinhar
+        options: ["Ctrl + S", "Ctrl + B", "Ctrl + I", "Ctrl + U"],
         answer: "Ctrl + U"
     },
     {
@@ -67,6 +68,7 @@ const timerDisplay = document.getElementById('timer-display');
 const questionText = document.getElementById('question-text');
 const optionsContainer = document.getElementById('options-container');
 const mainContent = document.getElementById('main-content');
+const reviewContainer = document.getElementById('review-container'); // <-- NOVO ELEMENTO
 const prevButton = document.getElementById('prev-button');
 const nextButton = document.getElementById('next-button');
 const navigationControls = document.querySelector('.navigation-controls');
@@ -86,7 +88,7 @@ function formatTime(totalSeconds) {
 }
 
 function startTimer() {
-    if (timerInterval) clearInterval(timerInterval); // Garante que não haja múltiplos timers
+    if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(() => {
         seconds++;
         timerDisplay.textContent = `Tempo: ${formatTime(seconds)}`;
@@ -97,26 +99,20 @@ function stopTimer() {
     clearInterval(timerInterval);
 }
 
-// --- FUNÇÕES DE EXIBIÇÃO E NAVEGAÇÃO ---
+// --- FUNÇÕES DE EXIBIÇÃO E LÓGICA DO QUIZ ---
 function showQuestion() {
-    mainContent.style.display = 'block';
-    navigationControls.style.display = 'flex';
     const currentQuestion = questions[currentQuestionIndex];
-
-    // Atualiza o texto da pergunta
     questionText.textContent = `${currentQuestionIndex + 1} de ${questions.length}: ${currentQuestion.question}`;
-    optionsContainer.innerHTML = ''; // Limpa as opções anteriores
+    optionsContainer.innerHTML = '';
 
-    // Cria os botões de opção
     currentQuestion.options.forEach(option => {
         const button = document.createElement('button');
         button.textContent = option;
         button.classList.add('option-btn');
-        button.addEventListener('click', () => selectAnswer(option, button));
+        button.addEventListener('click', () => selectAnswer(option));
         optionsContainer.appendChild(button);
     });
-    
-    // Se a pergunta já foi respondida, exibe o estado salvo
+
     if (userAnswers[currentQuestionIndex] !== null) {
         showSavedAnswer();
     }
@@ -124,26 +120,23 @@ function showQuestion() {
     updateNavigationButtons();
 }
 
-function selectAnswer(selectedOption, selectedButton) {
-    // Impede de responder a mesma pergunta duas vezes
+function selectAnswer(selectedOption) {
     if (userAnswers[currentQuestionIndex] !== null) return;
 
     const currentQuestion = questions[currentQuestionIndex];
     const isCorrect = selectedOption === currentQuestion.answer;
 
-    // Salva a resposta do usuário
     userAnswers[currentQuestionIndex] = {
         selected: selectedOption,
         correct: currentQuestion.answer,
         isCorrect: isCorrect
     };
 
-    // Atualiza a pontuação
     if (isCorrect) {
         score++;
     }
 
-    // Aplica o feedback visual imediato
+    // Aplica feedback visual e desabilita botões
     const optionButtons = optionsContainer.querySelectorAll('.option-btn');
     optionButtons.forEach(btn => {
         if (btn.textContent === currentQuestion.answer) {
@@ -151,7 +144,7 @@ function selectAnswer(selectedOption, selectedButton) {
         } else if (btn.textContent === selectedOption) {
             btn.classList.add('incorrect');
         }
-        btn.disabled = true; // Desabilita todos os botões após a resposta
+        btn.disabled = true;
     });
 }
 
@@ -161,15 +154,14 @@ function showSavedAnswer() {
 
     const optionButtons = optionsContainer.querySelectorAll('.option-btn');
     optionButtons.forEach(btn => {
+        btn.disabled = true;
         if (btn.textContent === savedAnswer.correct) {
             btn.classList.add('correct');
         } else if (btn.textContent === savedAnswer.selected) {
             btn.classList.add('incorrect');
         }
-        btn.disabled = true;
     });
 }
-
 
 function updateNavigationButtons() {
     prevButton.style.display = currentQuestionIndex > 0 ? 'inline-block' : 'none';
@@ -181,9 +173,10 @@ function navigate(direction) {
     showQuestion();
 }
 
-// --- FUNÇÕES DE FINALIZAÇÃO E REVISÃO ---
+// --- FUNÇÕES DE FINALIZAÇÃO E REVISÃO (VERSÃO CORRIGIDA) ---
 function showFinalScore() {
     stopTimer();
+    // Esconde a área de perguntas e os botões de navegação
     mainContent.style.display = 'none';
     navigationControls.style.display = 'none';
 
@@ -202,41 +195,54 @@ function showFinalScore() {
 
     questions.forEach((question, index) => {
         const userAnswer = userAnswers[index];
-        const statusClass = userAnswer && userAnswer.isCorrect ? 'review-correct' : 'review-incorrect';
-        const statusText = userAnswer ? (userAnswer.isCorrect ? 'CERTO' : 'ERRADO') : 'NÃO RESPONDIDA';
-        const selectedText = userAnswer ? userAnswer.selected : 'Nenhuma (Questão pulada)';
-        const selectedClass = userAnswer && userAnswer.isCorrect ? 'text-correct' : 'text-incorrect';
+        const isAnswered = userAnswer !== null;
+        const isCorrect = isAnswered && userAnswer.isCorrect;
+
+        const statusClass = isCorrect ? 'review-correct' : 'review-incorrect';
+        const statusText = isAnswered ? (isCorrect ? 'CERTO' : 'ERRADO') : 'NÃO RESPONDIDA';
+        const selectedText = isAnswered ? userAnswer.selected : 'Nenhuma (Questão pulada)';
+        const selectedClass = isCorrect ? 'text-correct' : 'text-incorrect';
 
         reviewHTML += `
             <div class="error-item ${statusClass}">
                 <p><strong>${index + 1}. ${question.question}</strong> <span class="status-tag">(${statusText})</span></p>
                 <p>Sua Resposta: <span class="${selectedClass}">${selectedText}</span></p>
-                ${!userAnswer || !userAnswer.isCorrect ? `<p>Resposta Correta: <span class="text-correct">${question.answer}</span></p>` : ''}
+                ${!isCorrect ? `<p>Resposta Correta: <span class="text-correct">${question.answer}</span></p>` : ''}
             </div>
             <hr>
         `;
     });
 
-    reviewHTML += '</div><button id="restart-button">Tentar Novamente</button>';
-    optionsContainer.innerHTML = reviewHTML;
+    reviewHTML += '</div><button id="restart-button" class="nav-btn next-btn" style="width: 100%; margin-top: 20px;">Tentar Novamente</button>';
+    
+    // Injeta o HTML no container de revisão, que está VISÍVEL
+    reviewContainer.innerHTML = reviewHTML;
+    reviewContainer.style.display = 'block';
 
     document.getElementById('restart-button').addEventListener('click', restartQuiz);
 }
 
 function restartQuiz() {
+    // Reseta o estado
     currentQuestionIndex = 0;
     score = 0;
     seconds = 0;
     userAnswers.fill(null);
-    optionsContainer.innerHTML = '';
     
-    quizTitle.textContent = 'VC DO 2º MÓDULO / TIC / CFS I-25'; // Restaura o título original
+    // Limpa e esconde a revisão
+    reviewContainer.innerHTML = '';
+    reviewContainer.style.display = 'none';
+
+    // Restaura a tela do quiz
+    quizTitle.textContent = 'VC DO 2º MÓDULO / TIC / CFS I-25';
+    mainContent.style.display = 'block';
+    navigationControls.style.display = 'flex';
     
     startTimer();
     showQuestion();
 }
 
-// --- INICIALIZAÇÃO ---
+// --- EVENT LISTENERS E INICIALIZAÇÃO ---
 nextButton.addEventListener('click', () => {
     if (currentQuestionIndex < questions.length - 1) {
         navigate(1);
@@ -251,7 +257,6 @@ prevButton.addEventListener('click', () => {
     }
 });
 
-// Inicia o quiz
 window.onload = () => {
     startTimer();
     showQuestion();
