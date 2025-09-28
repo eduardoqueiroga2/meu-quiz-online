@@ -365,16 +365,41 @@ window.onload = createMenu; // Inicia criando o menu
 
 function createMenu() {
     subjectButtonsContainer.innerHTML = ''; // Limpa botões antigos
+
+    // NOVO: Paleta de cores para as disciplinas
+    const subjectColors = {
+        'TIC': '#007bff', // Azul
+        'Ética Profissional': '#28a745', // Verde
+        'Administração Geral': '#ffc107', // Amarelo
+        'Direito Militar': '#dc3545', // Vermelho
+        'default': '#6c757d' // Cinza para fallback
+    };
+
     const subjects = [...new Set(questions.map(q => q.subject))];
 
     subjects.forEach(subject => {
         const button = document.createElement('button');
+        const color = subjectColors[subject] || subjectColors['default'];
+        
         button.className = 'subject-btn';
         button.textContent = subject;
+        button.style.borderColor = color; // Define a cor da borda
+        button.style.color = color; // Define a cor do texto
+
+        button.onmouseover = () => {
+             button.style.backgroundColor = color;
+             button.style.color = '#FFFFFF';
+        };
+        button.onmouseout = () => {
+            button.style.backgroundColor = 'transparent';
+            button.style.color = color;
+        };
+        
         button.onclick = () => startQuiz(subject);
         subjectButtonsContainer.appendChild(button);
     });
 
+    // Botão de Simulado Completo
     const allButton = document.createElement('button');
     allButton.className = 'subject-btn all-subjects';
     allButton.textContent = 'Simulado Completo (Todas as Matérias)';
@@ -567,5 +592,6 @@ nextButton.addEventListener('click', () => {
 prevButton.addEventListener('click', () => {
     if (currentQuestionIndex > 0) navigate(-1);
 });
+
 
 
