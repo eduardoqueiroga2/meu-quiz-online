@@ -165,7 +165,7 @@ const questions = [
         type: 'dissertative',
         subject: 'TIC',
         question: "Durante as aulas falamos de duas principais legislações da PMESP sobre TIC, cite quais são e diga resumidamente o que trata cada uma.",
-        standard_answer: "1-30-PM: Instruções para utilização da rede mundial de computadores (internet) e rede interna (intranet) pela PMESP; e 1-31-PM: Instruções para utilização das ferramentas eletrônicas de comunicação na PMESP."
+        standard_answer: "1-30-PM: Instruções para utilização da rede mundial de computadores (internet) e rede interna (intranet) pela PMESP;<br>1-31-PM: Instruções para utilização das ferramentas eletrônicas de comunicação na PMESP."
     },
     // --- Fim: TIC ---
     // --- Início: Administração Geral ---
@@ -353,7 +353,7 @@ const nextButton = document.getElementById('next-button');
 const navigationControls = document.querySelector('.navigation-controls');
 
 // --- VARIÁVEIS DE ESTADO ---
-let activeQuestions = []; // NOVO: Armazena as questões do quiz atual
+let activeQuestions = [];
 let currentQuestionIndex = 0;
 let score = 0;
 let timerInterval;
@@ -363,42 +363,25 @@ let userAnswers = [];
 // --- FLUXO PRINCIPAL ---
 
 function createMenu() {
-    subjectButtonsContainer.innerHTML = ''; // Limpa botões antigos
-
-    // NOVO: Paleta de cores para as disciplinas
+    subjectButtonsContainer.innerHTML = '';
     const subjectColors = {
-        'TIC': '#007bff', // Azul
-        'Ética Profissional': '#28a745', // Verde
-        'Administração Geral': '#ffc107', // Amarelo
-        'Direito Militar': '#dc3545', // Vermelho
-        'default': '#6c757d' // Cinza para fallback
+        'TIC': '#007bff', 'Ética Profissional': '#28a745', 'Administração Geral': '#ffc107', 'Direito Militar': '#dc3545', 'default': '#6c757d'
     };
-
     const subjects = [...new Set(questions.map(q => q.subject))];
 
     subjects.forEach(subject => {
         const button = document.createElement('button');
         const color = subjectColors[subject] || subjectColors['default'];
-        
         button.className = 'subject-btn';
         button.textContent = subject;
-        button.style.borderColor = color; // Define a cor da borda
-        button.style.color = color; // Define a cor do texto
-
-        button.onmouseover = () => {
-             button.style.backgroundColor = color;
-             button.style.color = '#FFFFFF';
-        };
-        button.onmouseout = () => {
-            button.style.backgroundColor = 'transparent';
-            button.style.color = color;
-        };
-        
+        button.style.borderColor = color;
+        button.style.color = color;
+        button.onmouseover = () => { button.style.backgroundColor = color; button.style.color = '#FFFFFF'; };
+        button.onmouseout = () => { button.style.backgroundColor = 'transparent'; button.style.color = color; };
         button.onclick = () => startQuiz(subject);
         subjectButtonsContainer.appendChild(button);
     });
 
-    // Botão de Simulado Completo
     const allButton = document.createElement('button');
     allButton.className = 'subject-btn all-subjects';
     allButton.textContent = 'Simulado Completo (Todas as Matérias)';
@@ -407,28 +390,18 @@ function createMenu() {
 }
 
 function startQuiz(subject) {
-    // Filtra as questões com base na disciplina escolhida
-    if (subject === 'all') {
-        activeQuestions = [...questions];
-    } else {
-        activeQuestions = questions.filter(q => q.subject === subject);
-    }
-    
-    // Reseta o estado do quiz
+    activeQuestions = subject === 'all' ? [...questions] : questions.filter(q => q.subject === subject);
     currentQuestionIndex = 0;
     score = 0;
     seconds = 0;
     userAnswers = Array(activeQuestions.length).fill(null);
-
-    // Alterna a visibilidade dos contêineres
     menuContainer.style.display = 'none';
     quizWrapper.style.display = 'block';
-    
     startTimer();
     showQuestion();
 }
 
-// --- FUNÇÕES DE CRONÔMETRO (sem alteração) ---
+// --- FUNÇÕES DE CRONÔMETRO ---
 function formatTime(totalSeconds) {
     const minutes = Math.floor(totalSeconds / 60);
     const remainingSeconds = totalSeconds % 60;
@@ -447,72 +420,94 @@ function stopTimer() {
     clearInterval(timerInterval);
 }
 
-
-// --- LÓGICA DO QUIZ (MODIFICADA para usar activeQuestions) ---
+// --- LÓGICA DO QUIZ ---
 function showQuestion() {
+    optionsContainer.innerHTML = ''; // Limpa a área de opções primeiro
     const currentQuestion = activeQuestions[currentQuestionIndex];
     quizTitle.textContent = `Matéria: ${currentQuestion.subject}`;
     questionText.textContent = `${currentQuestionIndex + 1} de ${activeQuestions.length}: ${currentQuestion.question}`;
-    optionsContainer.innerHTML = '';
 
     if (currentQuestion.type === 'multiple_choice') {
         currentQuestion.options.forEach(option => {
             const button = document.createElement('button');
             button.textContent = option;
             button.classList.add('option-btn');
-            button.addEventListener('click', () => selectAnswer(option));
+            button.addEventListener('click', () => selectMultipleChoiceAnswer(option));
             optionsContainer.appendChild(button);
         });
     } else if (currentQuestion.type === 'dissertative') {
         const textArea = document.createElement('textarea');
         textArea.classList.add('dissertative-input');
         textArea.placeholder = 'Digite sua resposta aqui...';
-        
         const showAnswerBtn = document.createElement('button');
         showAnswerBtn.textContent = 'Ver Resposta Padrão';
         showAnswerBtn.classList.add('nav-btn');
         showAnswerBtn.style.marginTop = '15px';
-
-        showAnswerBtn.addEventListener('click', () => {
-            const userAnswerText = textArea.value || 'Não respondida.';
-            userAnswers[currentQuestionIndex] = { type: 'dissertative', answer: userAnswerText };
-            textArea.disabled = true;
-            showAnswerBtn.style.display = 'none';
-
-            const standardAnswerBox = document.createElement('div');
-            standardAnswerBox.classList.add('standard-answer-box');
-            standardAnswerBox.innerHTML = `<h4>Resposta Padrão:</h4><p>${currentQuestion.standard_answer}</p>`;
-            optionsContainer.appendChild(standardAnswerBox);
-        });
-        
+        showAnswerBtn.onclick = () => selectDissertativeAnswer(textArea, showAnswerBtn, currentQuestion.standard_answer);
         optionsContainer.appendChild(textArea);
         optionsContainer.appendChild(showAnswerBtn);
     }
     
-    if (userAnswers[currentQuestionIndex] !== null) {
+    if (userAnswers[currentQuestionIndex]) {
         showSavedAnswer();
     }
     updateNavigationButtons();
 }
 
-function selectAnswer(selectedOption) {
-    if (userAnswers[currentQuestionIndex] !== null) return;
-
+function selectMultipleChoiceAnswer(selectedOption) {
+    if (userAnswers[currentQuestionIndex]) return;
     const currentQuestion = activeQuestions[currentQuestionIndex];
     const isCorrect = selectedOption === currentQuestion.answer;
-    
-    userAnswers[currentQuestionIndex] = { type: 'multiple_choice', selected: selectedOption, correct: currentQuestion.answer, isCorrect: isCorrect };
-
+    userAnswers[currentQuestionIndex] = { type: 'multiple_choice', selected: selectedOption, correct: currentQuestion.answer, isCorrect };
     if (isCorrect) score++;
-
-    const optionButtons = optionsContainer.querySelectorAll('.option-btn');
-    optionButtons.forEach(btn => {
-        btn.disabled = true;
-        if (btn.textContent === currentQuestion.answer) btn.classList.add('correct');
-        else if (btn.textContent === selectedOption) btn.classList.add('incorrect');
-    });
+    showSavedAnswer(); // Reusa a função para aplicar o feedback visual
 }
 
+function selectDissertativeAnswer(textArea, button, standardAnswer) {
+    if (userAnswers[currentQuestionIndex]) return;
+    const userAnswerText = textArea.value.trim() === '' ? 'Não respondida.' : textArea.value;
+    userAnswers[currentQuestionIndex] = { type: 'dissertative', answer: userAnswerText };
+    showSavedAnswer(); // Reusa a função para mostrar a resposta padrão
+}
+
+function showSavedAnswer() {
+    const savedAnswer = userAnswers[currentQuestionIndex];
+    if (!savedAnswer) return;
+
+    if (savedAnswer.type === 'multiple_choice') {
+        const optionButtons = optionsContainer.querySelectorAll('.option-btn');
+        optionButtons.forEach(btn => {
+            btn.disabled = true;
+            if (btn.textContent === savedAnswer.correct) btn.classList.add('correct');
+            else if (btn.textContent === savedAnswer.selected) btn.classList.add('incorrect');
+        });
+    } else if (savedAnswer.type === 'dissertative') {
+        optionsContainer.querySelector('.dissertative-input').value = savedAnswer.answer;
+        optionsContainer.querySelector('.dissertative-input').disabled = true;
+        const btn = optionsContainer.querySelector('.nav-btn');
+        if (btn) btn.style.display = 'none';
+        
+        // CORREÇÃO: Evita adicionar respostas duplicadas
+        if (!optionsContainer.querySelector('.standard-answer-box')) {
+            const standardAnswerBox = document.createElement('div');
+            standardAnswerBox.classList.add('standard-answer-box');
+            standardAnswerBox.innerHTML = `<h4>Resposta Padrão:</h4><p>${activeQuestions[currentQuestionIndex].standard_answer}</p>`;
+            optionsContainer.appendChild(standardAnswerBox);
+        }
+    }
+}
+
+function updateNavigationButtons() {
+    prevButton.style.display = currentQuestionIndex > 0 ? 'inline-block' : 'none';
+    nextButton.textContent = currentQuestionIndex === activeQuestions.length - 1 ? 'Finalizar Quiz' : 'Próxima Questão';
+}
+
+function navigate(direction) {
+    currentQuestionIndex += direction;
+    showQuestion();
+}
+
+// --- REVISÃO E REINÍCIO ---
 function showFinalScore() {
     stopTimer();
     mainContent.style.display = 'none';
@@ -524,16 +519,10 @@ function showFinalScore() {
     const totalPossibleScore = multipleChoiceQuestions.length;
     const percentage = totalPossibleScore > 0 ? ((score / totalPossibleScore) * 100).toFixed(0) : 0;
 
-    let reviewHTML = `
-        <div class="final-score">
-            <h2>Resultados da Avaliação</h2>
-            <p>Pontuação (Múltipla Escolha): ${score} de ${totalPossibleScore} (${percentage}%)</p>
-        </div>
-        <div class="review-section"><h3>Revisão Detalhada:</h3>`;
+    let reviewHTML = `<div class="final-score"><h2>Resultados</h2><p>Pontuação (Múltipla Escolha): ${score} de ${totalPossibleScore} (${percentage}%)</p></div><div class="review-section"><h3>Revisão Detalhada:</h3>`;
 
     activeQuestions.forEach((question, index) => {
         const userAnswer = userAnswers[index];
-        
         if (question.type === 'multiple_choice') {
             const isAnswered = userAnswer !== null;
             const isCorrect = isAnswered && userAnswer.isCorrect;
@@ -541,30 +530,16 @@ function showFinalScore() {
             const statusText = isAnswered ? (isCorrect ? 'CERTO' : 'ERRADO') : 'NÃO RESPONDIDA';
             const selectedText = isAnswered ? userAnswer.selected : 'Nenhuma (Questão pulada)';
             const selectedClass = isCorrect ? 'text-correct' : 'text-incorrect';
-
-            reviewHTML += `
-                <div class="error-item ${statusClass}">
-                    <p><strong>${index + 1}. (${question.subject}) ${question.question}</strong> <span class="status-tag">(${statusText})</span></p>
-                    <p>Sua Resposta: <span class="${selectedClass}">${selectedText}</span></p>
-                    ${!isCorrect ? `<p>Resposta Correta: <span class="text-correct">${question.answer}</span></p>` : ''}
-                </div><hr>`;
-        } 
-        // BLOCO PARA DISSERTATIVA (JÁ ESTAVA CORRETO)
-        else if (question.type === 'dissertative') {
+            reviewHTML += `<div class="error-item ${statusClass}"><p><strong>${index + 1}. (${question.subject}) ${question.question}</strong> <span class="status-tag">(${statusText})</span></p><p>Sua Resposta: <span class="${selectedClass}">${selectedText}</span></p>${!isCorrect ? `<p>Resposta Correta: <span class="text-correct">${question.answer}</span></p>` : ''}</div><hr>`;
+        } else if (question.type === 'dissertative') {
             const userAnswerText = userAnswer ? userAnswer.answer : 'Não respondida.';
-            reviewHTML += `
-                <div class="error-item review-dissertative">
-                    <p><strong>${index + 1}. (${question.subject}) ${question.question}</strong> <span class="status-tag">(DISSERTATIVA)</span></p>
-                    <p><strong>Sua Resposta:</strong></p><p class="user-written-answer">${userAnswerText}</p>
-                    <p><strong>Resposta Padrão:</strong></p><p class="standard-answer-text">${question.standard_answer}</p>
-                </div><hr>`;
+            reviewHTML += `<div class="error-item review-dissertative"><p><strong>${index + 1}. (${question.subject}) ${question.question}</strong> <span class="status-tag">(DISSERTATIVA)</span></p><p><strong>Sua Resposta:</strong></p><p class="user-written-answer">${userAnswerText}</p><p><strong>Resposta Padrão:</strong></p><p class="standard-answer-text">${question.standard_answer}</p></div><hr>`;
         }
     });
 
     reviewHTML += '</div><button id="restart-button">Voltar ao Menu</button>';
     reviewContainer.innerHTML = reviewHTML;
     reviewContainer.style.display = 'block';
-
     document.getElementById('restart-button').addEventListener('click', goToMenu);
 }
 
@@ -575,14 +550,10 @@ function goToMenu() {
     reviewContainer.style.display = 'none';
     mainContent.style.display = 'block';
     navigationControls.style.display = 'flex';
-    createMenu(); // Recria o menu para garantir que está limpo
 }
 
-
 // --- EVENT LISTENERS E INICIALIZAÇÃO ---
-
 nextButton.addEventListener('click', () => {
-    // Lógica para avançar para a próxima questão ou finalizar o quiz
     if (currentQuestionIndex < activeQuestions.length - 1) {
         navigate(1);
     } else {
@@ -591,13 +562,11 @@ nextButton.addEventListener('click', () => {
 });
 
 prevButton.addEventListener('click', () => {
-    // Lógica para voltar para a questão anterior
     if (currentQuestionIndex > 0) {
         navigate(-1);
     }
 });
 
-// Inicia a aplicação criando o menu quando a página carrega
 window.onload = createMenu;
 
 
