@@ -69,6 +69,8 @@ const nextButton = document.getElementById('next-button');
 const prevButton = document.getElementById('prev-button');
 const timerDisplay = document.getElementById('timer-display');
 const mainContent = document.getElementById('main-content'); // Novo ID para conteúdo que será substituído
+const quizContainer = document.querySelector('.quiz-container');
+const mainContent = document.getElementById('main-content'); 
 
 // Variáveis de Estado
 let currentQuestionIndex = 0;
@@ -291,5 +293,6 @@ prevButton.addEventListener('click', () => navigate(-1));
 // Inicia o quiz e o cronômetro
 startTimer();
 showQuestion();
+
 
 
