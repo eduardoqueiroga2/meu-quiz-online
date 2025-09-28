@@ -198,6 +198,8 @@ function showFinalScore() {
     const finalTime = formatTime(seconds);
     
     // 1. Esconde o conteúdo principal do quiz (perguntas e navegação)
+    // Se mainContent não for encontrado, esta linha pode estar falhando.
+    // Garantir que o ID 'main-content' existe no seu HTML é crucial.
     mainContent.style.display = 'none'; 
     
     // 2. Altera o título principal para 'Revisão Completa'
@@ -219,11 +221,14 @@ function showFinalScore() {
                             getReviewHTML() + 
                             `<button id="restart-button" class="nav-btn next-btn" style="margin-top: 30px; margin-bottom: 20px;">Tentar Novamente</button>`;
     
-    // 6. Insere o conteúdo completo NO optionsContainer, que agora funciona como nosso container de resultados.
+    // 6. Insere o conteúdo completo NO optionsContainer.
     optionsContainer.innerHTML = finalReviewHTML;
     
-    // 7. Adiciona o listener para o botão de Reiniciar
-    document.getElementById('restart-button').addEventListener('click', restartQuiz);
+    // 7. Adiciona o listener para o botão de Reiniciar APÓS ele ser inserido no DOM
+    const restartButton = document.getElementById('restart-button');
+    if (restartButton) {
+         restartButton.addEventListener('click', restartQuiz);
+    }
 }
 
 function getReviewHTML() {
@@ -286,4 +291,5 @@ prevButton.addEventListener('click', () => navigate(-1));
 // Inicia o quiz e o cronômetro
 startTimer();
 showQuestion();
+
 
