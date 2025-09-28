@@ -187,7 +187,7 @@ function checkAnswer(selectedButton, correctAnswer, questionData) {
 }
 
 
-// --- FUNÇÃO DE FINALIZAÇÃO E REVISÃO ---
+// --- FUNÇÃO DE FINALIZAÇÃO E REVISÃO CORRIGIDA ---
 
 function calculateScore() {
     score = userAnswers.filter(answer => answer && answer.isCorrect).length;
@@ -197,25 +197,32 @@ function showFinalScore() {
     calculateScore();
     const finalTime = formatTime(seconds);
     
-    // Esconde o conteúdo principal do quiz e mostra apenas a revisão
+    // 1. Esconde o conteúdo principal do quiz (perguntas e navegação)
     mainContent.style.display = 'none'; 
-    quizTitle.textContent = 'Revisão Completa'; // Novo Título
     
-    // Gera o HTML da revisão e do botão "Tentar Novamente"
-    const finalReviewHTML = `
+    // 2. Altera o título principal para 'Revisão Completa'
+    quizTitle.textContent = 'Revisão Completa'; 
+    
+    // 3. Altera o display do cronômetro para mostrar o tempo final
+    timerDisplay.textContent = `Tempo: ${finalTime}`;
+    
+    // 4. Cria o HTML do cabeçalho de resultados
+    const resultsHeaderHTML = `
         <div class="final-score">
             <h2>Resultados da Avaliação</h2>
             <p>Pontuação: ${score} de ${questions.length} (${((score / questions.length) * 100).toFixed(0)}%)</p>
-            <p>Tempo total gasto: ${finalTime}</p>
         </div>
-        ${getReviewHTML()}
-        <button id="restart-button" class="nav-btn next-btn" style="margin-top: 30px; margin-bottom: 20px;">Tentar Novamente</button>
     `;
+
+    // 5. Monta o HTML completo (Cabeçalho + Revisão + Botão)
+    const finalReviewHTML = resultsHeaderHTML + 
+                            getReviewHTML() + 
+                            `<button id="restart-button" class="nav-btn next-btn" style="margin-top: 30px; margin-bottom: 20px;">Tentar Novamente</button>`;
     
-    // Insere o conteúdo no container
+    // 6. Insere o conteúdo completo NO optionsContainer, que agora funciona como nosso container de resultados.
     optionsContainer.innerHTML = finalReviewHTML;
     
-    // Adiciona o listener para o botão de Reiniciar
+    // 7. Adiciona o listener para o botão de Reiniciar
     document.getElementById('restart-button').addEventListener('click', restartQuiz);
 }
 
@@ -279,3 +286,4 @@ prevButton.addEventListener('click', () => navigate(-1));
 // Inicia o quiz e o cronômetro
 startTimer();
 showQuestion();
+
