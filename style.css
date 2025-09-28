@@ -220,20 +220,20 @@ h1#quiz-title { /* Estilo para o título principal */
 }
 
 .subject-btn {
-    background-color: var(--button-bg);
-    color: var(--text-color);
-    border: 1px solid #555;
+    background-color: transparent; /* Fundo transparente para destacar a borda */
+    border: 2px solid #555; /* Borda um pouco mais grossa */
     padding: 20px;
     border-radius: 8px;
     cursor: pointer;
     font-size: 1.1em;
     font-weight: bold;
-    transition: background-color 0.3s, border-color 0.3s;
+    transition: background-color 0.2s, color 0.2s; /* Transição suave */
 }
 
 .subject-btn:hover {
-    background-color: var(--button-hover);
-    border-color: var(--main-accent);
+    /* O efeito hover agora é controlado pelo JavaScript (onmouseover/onmouseout) */
+    /* Deixamos essa regra mais simples ou até vazia se preferir */
+    color: #FFFFFF; /* Garante que o texto fique branco ao passar o mouse */
 }
 
 .subject-btn.all-subjects {
@@ -244,4 +244,5 @@ h1#quiz-title { /* Estilo para o título principal */
 .subject-btn.all-subjects:hover {
     background-color: #0056b3;
 }
+
 
