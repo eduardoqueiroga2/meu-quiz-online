@@ -200,3 +200,8 @@ h1#quiz-title { /* Estilo para o título principal */
 #options-container {
     width: 100%;
 }
+
+#next-button {
+    margin-left: auto; /* A mágica acontece aqui! */
+}
+
