@@ -7,9 +7,9 @@ const questions = [
     {
         question: "O e-mail corporativo é classificado em três tipos, são eles:",
         options: [
-            "Organizacional, Funcional, Pessoal", 
-            "Organizacional, Civil, Pessoal", 
-            "Global, Individual, Pessoal", 
+            "Organizacional, Funcional, Pessoal",
+            "Organizacional, Civil, Pessoal",
+            "Global, Individual, Pessoal",
             "Global, Organizacional, Funcional"
         ],
         answer: "Organizacional, Funcional, Pessoal"
@@ -22,17 +22,17 @@ const questions = [
     {
         question: "Os e-mails de caráter organizacional e funcional têm obrigatoriedade de consulta:",
         options: [
-            "Exclusivamente quando determinado pelo Cmt/Ch/Dir", 
-            "Não há obrigatoriedade com a LGPD", 
-            "Obrigatoriamente uma vez na semana", 
+            "Exclusivamente quando determinado pelo Cmt/Ch/Dir",
+            "Não há obrigatoriedade com a LGPD",
+            "Obrigatoriamente uma vez na semana",
             "No inicio e no término do turno de serviço"
         ],
         answer: "No inicio e no término do turno de serviço"
     },
     {
         question: "No Microsoft Word, qual é o atalho utilizado para sublinhar um texto?",
-        options: ["Ctrl + S", "Ctrl + B", "Ctrl + I", "Ctrl + P"],
-        answer: "Ctrl + S"
+        options: ["Ctrl + S", "Ctrl + B", "Ctrl + I", "Ctrl + U"], // CORRIGIDO: Ctrl + U para Sublinhar
+        answer: "Ctrl + U"
     },
     {
         question: "Qual é o principal objetivo de uma VPN em redes corporativas?",
@@ -61,245 +61,198 @@ const questions = [
     }
 ];
 
-// Elementos HTML (Declarações obrigatórias no topo do script.js)
-const quizTitle = document.getElementById('quiz-title'); // Título do módulo
-const timerDisplay = document.getElementById('timer-display'); // Cronômetro
-const questionText = document.getElementById('question-text'); // ESTE É O CRÍTICO: Onde vai o texto da pergunta
-const optionsContainer = document.getElementById('options-container'); // Onde vão as opções
-const mainContent = document.getElementById('main-content'); // Container principal (para esconder/mostrar)
-const prevButton = document.getElementById('prev-button'); // Botão Voltar
-const nextButton = document.getElementById('next-button'); // Botão Próxima
+// --- ELEMENTOS HTML ---
+const quizTitle = document.getElementById('quiz-title');
+const timerDisplay = document.getElementById('timer-display');
+const questionText = document.getElementById('question-text');
+const optionsContainer = document.getElementById('options-container');
+const mainContent = document.getElementById('main-content');
+const prevButton = document.getElementById('prev-button');
+const nextButton = document.getElementById('next-button');
+const navigationControls = document.querySelector('.navigation-controls');
 
-// Variáveis de Estado
+// --- VARIÁVEIS DE ESTADO ---
 let currentQuestionIndex = 0;
 let score = 0;
-let intervalId;
+let timerInterval;
 let seconds = 0;
-let userAnswers = Array(questions.length).fill(null); 
-let questionAnsweredStatus = Array(questions.length).fill(false);
-
+let userAnswers = Array(questions.length).fill(null);
 
 // --- FUNÇÕES DE CRONÔMETRO ---
-
 function formatTime(totalSeconds) {
     const minutes = Math.floor(totalSeconds / 60);
     const remainingSeconds = totalSeconds % 60;
-    const paddedMinutes = String(minutes).padStart(2, '0');
-    const paddedSeconds = String(remainingSeconds).padStart(2, '0');
-    return `${paddedMinutes}:${paddedSeconds}`;
+    return `${String(minutes).padStart(2, '0')}:${String(remainingSeconds).padStart(2, '0')}`;
 }
 
 function startTimer() {
-    intervalId = setInterval(() => {
+    if (timerInterval) clearInterval(timerInterval); // Garante que não haja múltiplos timers
+    timerInterval = setInterval(() => {
         seconds++;
         timerDisplay.textContent = `Tempo: ${formatTime(seconds)}`;
     }, 1000);
 }
 
 function stopTimer() {
-    clearInterval(intervalId);
+    clearInterval(timerInterval);
 }
 
-
-// --- FUNÇÕES DE NAVEGAÇÃO E EXIBIÇÃO ---
-
-function updateNavigationButtons() {
-    // Esconde/mostra o botão Voltar
-    prevButton.style.display = currentQuestionIndex > 0 ? 'inline-block' : 'none';
-    
-    // Altera o texto do botão de avançar na última questão
-    if (currentQuestionIndex < questions.length - 1) {
-        nextButton.textContent = 'Próxima Questão';
-    } else {
-        nextButton.textContent = 'Finalizar Quiz';
-    }
-}
-
+// --- FUNÇÕES DE EXIBIÇÃO E NAVEGAÇÃO ---
 function showQuestion() {
-    // Altera o título para o padrão do quiz
-    quizTitle.textContent = 'VC DO 2º MÓDULO / TIC / CFS I-25';
     mainContent.style.display = 'block';
-
-    if (currentQuestionIndex >= questions.length) {
-        stopTimer();
-        showFinalScore();
-        return;
-    }
-
+    navigationControls.style.display = 'flex';
     const currentQuestion = questions[currentQuestionIndex];
-    questionText.textContent = `${currentQuestionIndex + 1} de ${questions.length}: ${currentQuestion.question}`;
-    optionsContainer.innerHTML = '';
 
+    // Atualiza o texto da pergunta
+    questionText.textContent = `${currentQuestionIndex + 1} de ${questions.length}: ${currentQuestion.question}`;
+    optionsContainer.innerHTML = ''; // Limpa as opções anteriores
+
+    // Cria os botões de opção
     currentQuestion.options.forEach(option => {
         const button = document.createElement('button');
         button.textContent = option;
         button.classList.add('option-btn');
-        
-        // Aplica o estado visual da resposta salva
-        if (questionAnsweredStatus[currentQuestionIndex]) {
-            button.disabled = true;
-            if (option === userAnswers[currentQuestionIndex].correctAnswer) {
-                button.classList.add('correct');
-            } else if (option === userAnswers[currentQuestionIndex].selectedAnswer) {
-                button.classList.add('incorrect');
-            }
-        } else {
-            // Adiciona o evento de clique SÓ se a questão ainda não foi respondida
-            button.addEventListener('click', () => checkAnswer(button, currentQuestion.answer, currentQuestion));
-        }
-
+        button.addEventListener('click', () => selectAnswer(option, button));
         optionsContainer.appendChild(button);
     });
+    
+    // Se a pergunta já foi respondida, exibe o estado salvo
+    if (userAnswers[currentQuestionIndex] !== null) {
+        showSavedAnswer();
+    }
 
     updateNavigationButtons();
 }
 
+function selectAnswer(selectedOption, selectedButton) {
+    // Impede de responder a mesma pergunta duas vezes
+    if (userAnswers[currentQuestionIndex] !== null) return;
+
+    const currentQuestion = questions[currentQuestionIndex];
+    const isCorrect = selectedOption === currentQuestion.answer;
+
+    // Salva a resposta do usuário
+    userAnswers[currentQuestionIndex] = {
+        selected: selectedOption,
+        correct: currentQuestion.answer,
+        isCorrect: isCorrect
+    };
+
+    // Atualiza a pontuação
+    if (isCorrect) {
+        score++;
+    }
+
+    // Aplica o feedback visual imediato
+    const optionButtons = optionsContainer.querySelectorAll('.option-btn');
+    optionButtons.forEach(btn => {
+        if (btn.textContent === currentQuestion.answer) {
+            btn.classList.add('correct');
+        } else if (btn.textContent === selectedOption) {
+            btn.classList.add('incorrect');
+        }
+        btn.disabled = true; // Desabilita todos os botões após a resposta
+    });
+}
+
+function showSavedAnswer() {
+    const savedAnswer = userAnswers[currentQuestionIndex];
+    if (!savedAnswer) return;
+
+    const optionButtons = optionsContainer.querySelectorAll('.option-btn');
+    optionButtons.forEach(btn => {
+        if (btn.textContent === savedAnswer.correct) {
+            btn.classList.add('correct');
+        } else if (btn.textContent === savedAnswer.selected) {
+            btn.classList.add('incorrect');
+        }
+        btn.disabled = true;
+    });
+}
+
+
+function updateNavigationButtons() {
+    prevButton.style.display = currentQuestionIndex > 0 ? 'inline-block' : 'none';
+    nextButton.textContent = currentQuestionIndex === questions.length - 1 ? 'Finalizar Quiz' : 'Próxima Questão';
+}
+
 function navigate(direction) {
-    // 1 para avançar, -1 para voltar
     currentQuestionIndex += direction;
     showQuestion();
 }
 
-function checkAnswer(selectedButton, correctAnswer, questionData) {
-    const selectedOption = selectedButton.textContent;
-    const isCorrect = selectedOption.includes(correctAnswer);
-
-    // Marca a questão como respondida
-    questionAnsweredStatus[currentQuestionIndex] = true;
-
-    // Armazena o resultado
-    userAnswers[currentQuestionIndex] = {
-        question: questionData.question,
-        correctAnswer: correctAnswer,
-        selectedAnswer: selectedOption,
-        isCorrect: isCorrect
-    };
-
-    // Aplica o feedback visual
-    optionsContainer.querySelectorAll('.option-btn').forEach(button => {
-        if (button.textContent.includes(correctAnswer)) {
-            button.classList.add('correct');
-        } else {
-            button.classList.add('incorrect');
-        }
-        button.disabled = true; // Desabilita todos os botões após responder
-    });
-}
-
-
-// --- FUNÇÃO DE FINALIZAÇÃO E REVISÃO (Versão Corrigida Final) ---
-
-function calculateScore() {
-    score = userAnswers.filter(answer => answer && answer.isCorrect).length;
-}
-
+// --- FUNÇÕES DE FINALIZAÇÃO E REVISÃO ---
 function showFinalScore() {
-    calculateScore();
-    const finalTime = formatTime(seconds);
-    
-    // 1. Esconde o conteúdo principal do quiz
-    // Agora que as variáveis estão corretas, este passo deve funcionar
-    mainContent.style.display = 'none'; 
-    
-    // 2. Altera o título principal
-    quizTitle.textContent = 'Revisão Completa'; 
-    
-    // 3. Altera o display do cronômetro para mostrar o tempo final
-    timerDisplay.textContent = `Tempo: ${finalTime}`;
-    
-    // 4. Cria o HTML do cabeçalho de resultados
-    const resultsHeaderHTML = `
+    stopTimer();
+    mainContent.style.display = 'none';
+    navigationControls.style.display = 'none';
+
+    quizTitle.textContent = 'Revisão Completa';
+    timerDisplay.textContent = `Tempo Final: ${formatTime(seconds)}`;
+
+    const percentage = ((score / questions.length) * 100).toFixed(0);
+    let reviewHTML = `
         <div class="final-score">
             <h2>Resultados da Avaliação</h2>
-            <p>Pontuação: ${score} de ${questions.length} (${((score / questions.length) * 100).toFixed(0)}%)</p>
+            <p>Pontuação: ${score} de ${questions.length} (${percentage}%)</p>
         </div>
+        <div class="review-section">
+            <h3>Revisão Detalhada:</h3>
     `;
 
-    // 5. Monta o HTML completo (Cabeçalho + Revisão + Botão)
-    // O erro pode estar na chamada a getReviewHTML() se ela estiver mal formatada
-    const finalReviewHTML = resultsHeaderHTML + 
-                            getReviewHTML() + 
-                            `<button id="restart-button" class="nav-btn next-btn" style="margin-top: 30px; margin-bottom: 20px;">Tentar Novamente</button>`;
-    
-    // 6. Insere o conteúdo completo NO optionsContainer.
-    optionsContainer.innerHTML = finalReviewHTML;
-    
-    // 7. Adiciona o listener para o botão de Reiniciar APÓS ele ser inserido no DOM
-    const restartButton = document.getElementById('restart-button');
-    if (restartButton) {
-         restartButton.addEventListener('click', restartQuiz);
-    }
-}
-
-function getReviewHTML() {
-    let reviewHTML = '<div class="review-section"><h3>Revisão Detalhada:</h3>';
-    
-    // O ERRO MAIS COMUM ACONTECE AQUI.
-    userAnswers.forEach((item, index) => {
-        // const questionData = questions[index]; // <-- ESTA LINHA FOI REMOVIDA
-        
-        // Garante que o item seja tratado, mesmo que nulo
-        const isAnswered = item !== null; 
-        
-        // O item.isCorrect só existe se isAnswered for true.
-        const isCorrect = isAnswered && item.isCorrect;
-        
-        const statusClass = isCorrect ? 'review-correct' : 'review-incorrect';
-        const statusText = isCorrect ? 'CERTO' : (isAnswered ? 'ERRADO' : 'NÃO RESPONDIDA');
-        
-        // Define a resposta selecionada ou a mensagem de pulada
-        const selectedText = isAnswered ? item.selectedAnswer : 'Nenhuma (Questão pulada)';
+    questions.forEach((question, index) => {
+        const userAnswer = userAnswers[index];
+        const statusClass = userAnswer && userAnswer.isCorrect ? 'review-correct' : 'review-incorrect';
+        const statusText = userAnswer ? (userAnswer.isCorrect ? 'CERTO' : 'ERRADO') : 'NÃO RESPONDIDA';
+        const selectedText = userAnswer ? userAnswer.selected : 'Nenhuma (Questão pulada)';
+        const selectedClass = userAnswer && userAnswer.isCorrect ? 'text-correct' : 'text-incorrect';
 
         reviewHTML += `
             <div class="error-item ${statusClass}">
-                <p><strong>${index + 1}. ${questions[index].question}</strong> <span class="status-tag">(${statusText})</span></p>
-                <p>Sua Resposta: <span class="${isCorrect ? 'text-correct' : 'text-incorrect'}">${selectedText}</span></p>
-                <p>Resposta Correta: <span class="text-correct">${questions[index].answer}</span></p>
+                <p><strong>${index + 1}. ${question.question}</strong> <span class="status-tag">(${statusText})</span></p>
+                <p>Sua Resposta: <span class="${selectedClass}">${selectedText}</span></p>
+                ${!userAnswer || !userAnswer.isCorrect ? `<p>Resposta Correta: <span class="text-correct">${question.answer}</span></p>` : ''}
             </div>
             <hr>
         `;
     });
-    
-    reviewHTML += '</div>';
-    return reviewHTML;
+
+    reviewHTML += '</div><button id="restart-button">Tentar Novamente</button>';
+    optionsContainer.innerHTML = reviewHTML;
+
+    document.getElementById('restart-button').addEventListener('click', restartQuiz);
 }
 
 function restartQuiz() {
-    // Reseta todas as variáveis de estado
     currentQuestionIndex = 0;
     score = 0;
     seconds = 0;
-    userAnswers = Array(questions.length).fill(null);
-    questionAnsweredStatus = Array(questions.length).fill(false);
+    userAnswers.fill(null);
     optionsContainer.innerHTML = '';
     
-    // Reinicia o quiz
+    quizTitle.textContent = 'VC DO 2º MÓDULO / TIC / CFS I-25'; // Restaura o título original
+    
     startTimer();
     showQuestion();
 }
 
-
-// --- EVENT LISTENERS E INICIALIZAÇÃO ---
-
-// Inicialização: precisa que o cronômetro comece
+// --- INICIALIZAÇÃO ---
 nextButton.addEventListener('click', () => {
-    // Se for a última questão, chame showFinalScore
-    if (currentQuestionIndex === questions.length - 1) {
-        stopTimer();
-        showFinalScore();
+    if (currentQuestionIndex < questions.length - 1) {
+        navigate(1);
     } else {
-        navigate(1); // Caso contrário, avança
+        showFinalScore();
     }
 });
 
-prevButton.addEventListener('click', () => navigate(-1));
+prevButton.addEventListener('click', () => {
+    if (currentQuestionIndex > 0) {
+        navigate(-1);
+    }
+});
 
-// Inicia o quiz e o cronômetro
-startTimer();
-showQuestion();
-
-
-
-
-
-
+// Inicia o quiz
+window.onload = () => {
+    startTimer();
+    showQuestion();
+};
